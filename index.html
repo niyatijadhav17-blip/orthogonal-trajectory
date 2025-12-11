@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthogonal Trajectory Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0;
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            padding: 25px;
+            border-right: 1px solid #eaeaea;
+        }
+        
+        .right-panel {
+            flex: 2;
+            min-width: 500px;
+            padding: 25px;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: #2575fc;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-group input {
+            flex: 1;
+        }
+        
+        button {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(37, 117, 252, 0.2);
+        }
+        
+        .examples {
+            background-color: #f8f9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .examples h3 {
+            margin-bottom: 15px;
+            color: #6a11cb;
+        }
+        
+        .example-item {
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-left: 4px solid #2575fc;
+            transition: all 0.2s;
+        }
+        
+        .example-item:hover {
+            background-color: #f0f4ff;
+            transform: translateX(5px);
+        }
+        
+        #graph-container {
+            width: 100%;
+            height: 500px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .results {
+            margin-top: 25px;
+            background-color: #f8f9ff;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .results h3 {
+            color: #6a11cb;
+            margin-bottom: 15px;
+        }
+        
+        .equation {
+            font-size: 1.2rem;
+            font-family: 'Cambria Math', serif;
+            padding: 15px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .explanation {
+            margin-top: 25px;
+            line-height: 1.7;
+        }
+        
+        .explanation h3 {
+            color: #6a11cb;
+            margin-bottom: 10px;
+        }
+        
+        .explanation p {
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #eaeaea;
+            }
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6a11cb;
+        }
+        
+        .fa-spinner {
+            animation: spin 1.5s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-project-diagram"></i> Orthogonal Trajectory Calculator</h1>
+            <p class="subtitle">Visualize orthogonal trajectories for families of curves</p>
+        </header>
+        
+        <div class="content">
+            <div class="left-panel">
+                <h2 class="panel-title">Input Parameters</h2>
+                
+                <div class="form-group">
+                    <label for="curve-family"><i class="fas fa-chart-line"></i> Family of Curves</label>
+                    <select id="curve-family">
+                        <option value="parabola">Parabolas: y = ax²</option>
+                        <option value="circle">Circles: x² + y² = a</option>
+                        <option value="hyperbola">Hyperbolas: xy = a</option>
+                        <option value="exponential">Exponentials: y = ae^x</option>
+                        <option value="custom">Custom Equation</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="custom-equation-group" style="display: none;">
+                    <label for="custom-equation"><i class="fas fa-edit"></i> Custom Equation (use 'a' as parameter)</label>
+                    <input type="text" id="custom-equation" placeholder="e.g., y = a*x^2 or x^2 + y^2 = a">
+                </div>
+                
+                <div class="form-group">
+                    <label for="parameter-range"><i class="fas fa-sliders-h"></i> Parameter Range</label>
+                    <div class="input-group">
+                        <input type="number" id="param-min" value="-3" step="0.5" placeholder="Min">
+                        <input type="number" id="param-max" value="3" step="0.5" placeholder="Max">
+                        <input type="number" id="param-step" value="0.5" step="0.1" placeholder="Step">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="x-range"><i class="fas fa-expand-alt"></i> X-Axis Range</label>
+                    <div class="input-group">
+                        <input type="number" id="x-min" value="-5" step="0.5" placeholder="Min">
+                        <input type="number" id="x-max" value="5" step="0.5" placeholder="Max">
+                    </div>
+                </div>
+                
+                <button id="calculate-btn">
+                    <i class="fas fa-calculator"></i> Calculate Orthogonal Trajectory
+                </button>
+                
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-2x"></i>
+                    <p>Calculating orthogonal trajectories...</p>
+                </div>
+                
+                <div class="examples">
+                    <h3><i class="fas fa-lightbulb"></i> Example Families</h3>
+                    <div class="example-item" data-family="parabola" data-equation="y = a*x^2">
+                        <strong>Parabolas:</strong> y = ax²
+                    </div>
+                    <div class="example-item" data-family="circle" data-equation="x^2 + y^2 = a">
+                        <strong>Circles:</strong> x² + y² = a
+                    </div>
+                    <div class="example-item" data-family="hyperbola" data-equation="x*y = a">
+                        <strong>Hyperbolas:</strong> xy = a
+                    </div>
+                    <div class="example-item" data-family="exponential" data-equation="y = a*e^x">
+                        <strong>Exponentials:</strong> y = aeˣ
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <h2 class="panel-title">Visualization</h2>
+                <div id="graph-container"></div>
+                
+                <div class="results">
+                    <h3><i class="fas fa-square-root-alt"></i> Results</h3>
+                    <div class="equation">
+                        Original Family: <span id="original-equation">y = ax²</span>
+                    </div>
+                    <div class="equation">
+                        Orthogonal Trajectory: <span id="orthogonal-equation">y² = -x²/(2a) + C</span>
+                    </div>
+                </div>
+                
+                <div class="explanation">
+                    <h3><i class="fas fa-info-circle"></i> How Orthogonal Trajectories Work</h3>
+                    <p>Orthogonal trajectories are curves that intersect a given family of curves at right angles. To find them:</p>
+                    <p>1. Start with a family of curves F(x, y, a) = 0, where 'a' is a parameter.</p>
+                    <p>2. Differentiate to eliminate 'a' and obtain a differential equation.</p>
+                    <p>3. Replace dy/dx with -dx/dy to get the differential equation for orthogonal trajectories.</p>
+                    <p>4. Solve this new differential equation to find the orthogonal family.</p>
+                    <p>In this tool, we use numerical methods to calculate and visualize these trajectories for the given curve family.</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Orthogonal Trajectory Calculator | Created with HTML, CSS, JavaScript, and Plotly</p>
+            <p>Note: For complex equations, orthogonal trajectories may be calculated numerically and might not be perfect for all parameter values.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const curveFamilySelect = document.getElementById('curve-family');
+            const customEquationGroup = document.getElementById('custom-equation-group');
+            const customEquationInput = document.getElementById('custom-equation');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const loadingDiv = document.getElementById('loading');
+            const originalEquationSpan = document.getElementById('original-equation');
+            const orthogonalEquationSpan = document.getElementById('orthogonal-equation');
+            const graphContainer = document.getElementById('graph-container');
+            const exampleItems = document.querySelectorAll('.example-item');
+            
+            // Example equations for each family
+            const equationTemplates = {
+                parabola: '
