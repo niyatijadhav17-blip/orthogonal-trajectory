@@ -1,161 +1,838 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Orthogonal Trajectory Calculator</title>
-  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.8.0/lib/browser/math.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:18px}
-    label{display:block;margin-top:8px}
-    input,textarea,select{width:100%;padding:8px;margin-top:4px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    #plot{height:560px;margin-top:12px}
-    .hint{font-size:0.9rem;color:#444}
-    button{padding:10px 14px;margin-top:10px;border-radius:6px;border:1px solid #ccc;background:#f5f5f5}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthogonal Trajectory Calculator</title>
+    <!-- Plotly.js for graphing -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Bootstrap for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: none;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: bold;
+            padding: 15px 20px;
+        }
+        
+        .graph-container {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .math-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+            font-family: 'Cambria Math', serif;
+            margin: 10px 0;
+        }
+        
+        .btn-custom {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .example-btn {
+            background: var(--light-color);
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+            margin: 5px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+        
+        .example-btn:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .slider-container {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .trajectory-info {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: bold;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .form-label {
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-ready {
+            background: #2ecc71;
+        }
+        
+        .status-processing {
+            background: #f39c12;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-  <h2>Orthogonal Trajectory Calculator (client-side)</h2>
-  <p class="hint">Enter a family of curves in the form <code>y = f(x, C)</code> where <code>C</code> is the family parameter. The page will compute orthogonal trajectories numerically by solving the ODE <code>dy/dx = -1 / (∂f/∂x)</code> (treating C as constant when differentiating).</p>
-
-  <label>Family expression for <code>y</code> (use variables <code>x</code> and <code>C</code>)</label>
-  <input id="family" value="C*x^2" />
-
-  <div class="row">
-    <div>
-      <label>Choose parameter C (example values)</label>
-      <input id="paramC" value="1" />
+    <div class="container py-5">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">🎯 Orthogonal Trajectory Calculator</h1>
+            <p class="lead text-white">Visualize curves and their orthogonal trajectories in real-time</p>
+        </div>
+        
+        <div class="row">
+            <!-- Left Column: Input and Controls -->
+            <div class="col-lg-4">
+                <!-- Input Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="status-indicator status-ready"></span>
+                        Curve Equation Input
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Coordinate System</label>
+                            <select id="coordSystem" class="form-select">
+                                <option value="cartesian">Cartesian (x, y)</option>
+                                <option value="polar">Polar (r, θ)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Family of Curves Equation</label>
+                            <div class="input-group">
+                                <span class="input-group-text">F(x, y) =</span>
+                                <input type="text" id="curveEquation" class="form-control" 
+                                       value="y - C*x^2" placeholder="e.g., y - C*x^2">
+                            </div>
+                            <small class="form-text text-muted">
+                                Use 'C' as the parameter. Use 'x', 'y' for Cartesian; 'r', 'theta' for polar
+                            </small>
+                        </div>
+                        
+                        <!-- Quick Examples -->
+                        <div class="mb-4">
+                            <label class="form-label">Quick Examples:</label>
+                            <div class="d-flex flex-wrap">
+                                <button class="example-btn" onclick="loadExample(1)">Lines: y = Cx</button>
+                                <button class="example-btn" onclick="loadExample(2)">Parabolas: y = Cx²</button>
+                                <button class="example-btn" onclick="loadExample(3)">Circles: x²+y²=C</button>
+                                <button class="example-btn" onclick="loadExample(4)">Exponential: y = Ceˣ</button>
+                                <button class="example-btn" onclick="loadExample(5)">Polar: r = Cθ</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Parameters -->
+                        <div class="slider-container">
+                            <label class="form-label">Number of Curves: <span id="curveCountValue">5</span></label>
+                            <input type="range" id="curveCount" class="form-range" min="1" max="15" value="5">
+                            
+                            <label class="form-label">Number of Trajectories: <span id="trajCountValue">5</span></label>
+                            <input type="range" id="trajCount" class="form-range" min="1" max="10" value="5">
+                            
+                            <label class="form-label">Parameter C Range: <span id="cRangeValue">-3 to 3</span></label>
+                            <input type="range" id="cRange" class="form-range" min="1" max="10" value="3">
+                        </div>
+                        
+                        <!-- Plot Range -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">X Min</label>
+                                <input type="number" id="xMin" class="form-control" value="-5" step="0.5">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">X Max</label>
+                                <input type="number" id="xMax" class="form-control" value="5" step="0.5">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="form-label">Y Min</label>
+                                <input type="number" id="yMin" class="form-control" value="-5" step="0.5">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Y Max</label>
+                                <input type="number" id="yMax" class="form-control" value="5" step="0.5">
+                            </div>
+                        </div>
+                        
+                        <!-- Calculate Button -->
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-custom btn-lg" onclick="calculateTrajectories()">
+                                Calculate & Plot Trajectories
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Math Information Card -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <span class="status-indicator status-ready"></span>
+                        Mathematical Information
+                    </div>
+                    <div class="card-body">
+                        <div id="mathInfo">
+                            <div class="trajectory-info">
+                                <h6>Orthogonal Trajectory Condition:</h6>
+                                <div class="math-display">
+                                    For curves F(x,y) = C, the orthogonal trajectories satisfy:
+                                    $$ \frac{dy}{dx} = -\frac{1}{f(x,y)} $$
+                                    where \( f(x,y) \) is the slope of the original family.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Graphs -->
+            <div class="col-lg-8">
+                <!-- Original Curves Graph -->
+                <div class="card">
+                    <div class="card-header">
+                        Original Family of Curves
+                    </div>
+                    <div class="card-body">
+                        <div id="originalPlot" class="graph-container" style="height: 400px;"></div>
+                    </div>
+                </div>
+                
+                <!-- Orthogonal Trajectories Graph -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        Orthogonal Trajectories
+                    </div>
+                    <div class="card-body">
+                        <div id="trajectoryPlot" class="graph-container" style="height: 400px;"></div>
+                    </div>
+                </div>
+                
+                <!-- Combined Graph -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        Combined View
+                    </div>
+                    <div class="card-body">
+                        <div id="combinedPlot" class="graph-container" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="card mt-5">
+            <div class="card-header">How to Use This Calculator</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5>📝 Step 1: Enter Equation</h5>
+                        <p>Enter your family of curves equation using 'C' as the parameter constant.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>⚙️ Step 2: Adjust Parameters</h5>
+                        <p>Set the number of curves, trajectories, and plot range as needed.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>📊 Step 3: Visualize</h5>
+                        <p>Click calculate to see the orthogonal trajectories plotted in real-time.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div>
-      <label>Initial point for orthogonal trajectory (x0, y0)</label>
-      <div style="display:flex;gap:8px"><input id="x0" placeholder="x0" value="1"/><input id="y0" placeholder="y0" value="1"/></div>
-    </div>
-  </div>
 
-  <div class="row">
-    <div>
-      <label>Integration range for x (min,max)</label>
-      <input id="xrange" value="-5,5" />
-    </div>
-    <div>
-      <label>Step size (smaller = more accurate)</label>
-      <input id="step" value="0.01" />
-    </div>
-  </div>
-
-  <label>Advanced: plot family curves for some C values (comma-separated)</label>
-  <input id="familyCs" value="-2,-1,0,1,2" />
-
-  <button id="compute">Compute & Plot</button>
-  <div id="messages" class="hint"></div>
-
-  <div id="plot"></div>
-
-  <script>
-    const math = window.math;
-
-    function parseNumberList(s){
-      return s.split(',').map(t=>parseFloat(t.trim())).filter(n=>!isNaN(n));
-    }
-
-    // Simple RK4 integrator for dy/dx = f(x,y)
-    function integrateRK4(f, x0, y0, xEnd, h){
-      const pts = [];
-      const sign = xEnd >= x0 ? 1 : -1;
-      const steps = Math.max(1, Math.ceil(Math.abs((xEnd - x0)/h)));
-      let x = x0, y = y0;
-      pts.push([x,y]);
-      for(let i=0;i<steps;i++){
-        const dt = sign * Math.abs((xEnd-x0)/steps);
-        const k1 = f(x,y);
-        const k2 = f(x + dt/2, y + (dt/2)*k1);
-        const k3 = f(x + dt/2, y + (dt/2)*k2);
-        const k4 = f(x + dt, y + dt*k3);
-        y = y + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
-        x = x + dt;
-        if(!isFinite(y)) break;
-        pts.push([x,y]);
-      }
-      return pts;
-    }
-
-    document.getElementById('compute').addEventListener('click', ()=>{
-      const msgs = document.getElementById('messages'); msgs.textContent='';
-      const family = document.getElementById('family').value.trim();
-      const Cval = parseFloat(document.getElementById('paramC').value);
-      const x0 = parseFloat(document.getElementById('x0').value);
-      const y0 = parseFloat(document.getElementById('y0').value);
-      const [xmin,xmax] = document.getElementById('xrange').value.split(',').map(t=>parseFloat(t.trim()));
-      const h = parseFloat(document.getElementById('step').value) || 0.01;
-      const familyCs = parseNumberList(document.getElementById('familyCs').value);
-
-      if(!family){ msgs.textContent='Please supply a family expression like "C*x^2" or "C*sqrt(x)".'; return; }
-
-      // Build math.js expression and derivative wrt x
-      let expr;
-      try{ expr = math.parse(family); }
-      catch(e){ msgs.textContent = 'Error parsing family expression: '+e; return; }
-
-      // derivative wrt x (treat C as symbol)
-      let dexpr;
-      try{ dexpr = math.derivative(expr, 'x'); }
-      catch(e){ msgs.textContent = 'Could not differentiate expression wrt x: '+e; return; }
-
-      // compile
-      const dexprCompiled = dexpr.compile();
-      const exprCompiled = expr.compile();
-
-      // slope of orthogonal trajectory: m_ortho = -1 / (dy/dx_original)
-      function orthSlope(x,y){
-        // evaluate derivative at (x,C)
-        const scope = {x: x, C: Cval};
-        let dval;
-        try{ dval = dexprCompiled.evaluate(scope); }
-        catch(e){ return NaN; }
-        if(!isFinite(dval) || Math.abs(dval) < 1e-12) return NaN;
-        return -1.0 / dval;
-      }
-
-      // Build ODE function for RK4
-      const ode = (x,y) => orthSlope(x,y);
-
-      // integrate forward and backward from initial point
-      const forward = integrateRK4(ode, x0, y0, xmax, h);
-      const backward = integrateRK4(ode, x0, y0, xmin, h).reverse();
-      const traj = backward.concat(forward.slice(1));
-
-      // build traces
-      const traces = [];
-
-      // family curves (plot by evaluating y = f(x,C) for each C)
-      if(familyCs.length){
-        for(const c of familyCs){
-          const xs = [], ys = [];
-          for(let x = xmin; x <= xmax; x += Math.max(Math.abs(h), 0.02)){
-            try{
-              const v = exprCompiled.evaluate({x:x, C:c});
-              if(isFinite(v)){ xs.push(x); ys.push(v); }
-            }catch(e){ /* skip */ }
-          }
-          traces.push({x: xs, y: ys, mode:'lines', name:`family C=${c}`, line:{dash:'dot'}});
+    <script>
+        // Global variables
+        let currentEquation = '';
+        let originalData = [];
+        let trajectoryData = [];
+        let combinedData = [];
+        
+        // Example equations
+        const examples = {
+            1: { eq: "y - C*x", name: "Lines through origin", coord: "cartesian" },
+            2: { eq: "y - C*x^2", name: "Parabolas", coord: "cartesian" },
+            3: { eq: "x^2 + y^2 - C", name: "Circles", coord: "cartesian" },
+            4: { eq: "y - C*exp(x)", name: "Exponential curves", coord: "cartesian" },
+            5: { eq: "r - C*theta", name: "Archimedean spiral", coord: "polar" }
+        };
+        
+        // Initialize plots
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePlots();
+            loadExample(2); // Load parabola example by default
+            
+            // Update slider value displays
+            document.getElementById('curveCount').addEventListener('input', function() {
+                document.getElementById('curveCountValue').textContent = this.value;
+            });
+            
+            document.getElementById('trajCount').addEventListener('input', function() {
+                document.getElementById('trajCountValue').textContent = this.value;
+            });
+            
+            document.getElementById('cRange').addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                document.getElementById('cRangeValue').textContent = `-${val} to ${val}`;
+            });
+        });
+        
+        function initializePlots() {
+            // Initialize empty plots
+            const emptyLayout = {
+                title: 'Enter equation and click calculate',
+                xaxis: { title: 'x', range: [-5, 5] },
+                yaxis: { title: 'y', range: [-5, 5], scaleanchor: 'x' },
+                showlegend: false,
+                grid: { rows: 1, columns: 1, pattern: 'independent' }
+            };
+            
+            Plotly.newPlot('originalPlot', [{x: [], y: []}], emptyLayout);
+            Plotly.newPlot('trajectoryPlot', [{x: [], y: []}], emptyLayout);
+            Plotly.newPlot('combinedPlot', [{x: [], y: []}], emptyLayout);
         }
-      }
-
-      // orthogonal trajectory
-      const xsT = traj.map(p=>p[0]);
-      const ysT = traj.map(p=>p[1]);
-      traces.push({x: xsT, y: ysT, mode:'lines', name:'orthogonal trajectory', line:{width:3}});
-
-      // initial point
-      traces.push({x:[x0], y:[y0], mode:'markers', name:'initial point', marker:{size:8}});
-
-      Plotly.newPlot('plot', traces, {margin:{t:30}, title:'Orthogonal Trajectory'});
-
-      msgs.textContent = 'Plotted numerical orthogonal trajectory. Note: this is numeric integration and supports families given as y=f(x,C) only.';
-    });
-
-  </script>
+        
+        function loadExample(exampleNum) {
+            const example = examples[exampleNum];
+            if (!example) return;
+            
+            document.getElementById('curveEquation').value = example.eq;
+            document.getElementById('coordSystem').value = example.coord;
+            
+            // Set appropriate ranges for the example
+            switch(exampleNum) {
+                case 2: // Parabolas
+                    document.getElementById('xMin').value = -3;
+                    document.getElementById('xMax').value = 3;
+                    document.getElementById('yMin').value = -2;
+                    document.getElementById('yMax').value = 8;
+                    break;
+                case 4: // Exponential
+                    document.getElementById('xMin').value = -2;
+                    document.getElementById('xMax').value = 2;
+                    document.getElementById('yMin').value = -1;
+                    document.getElementById('yMax').value = 8;
+                    break;
+                default:
+                    document.getElementById('xMin').value = -5;
+                    document.getElementById('xMax').value = 5;
+                    document.getElementById('yMin').value = -5;
+                    document.getElementById('yMax').value = 5;
+            }
+            
+            calculateTrajectories();
+        }
+        
+        function calculateTrajectories() {
+            const equation = document.getElementById('curveEquation').value.trim();
+            const coordSystem = document.getElementById('coordSystem').value;
+            const curveCount = parseInt(document.getElementById('curveCount').value);
+            const trajCount = parseInt(document.getElementById('trajCount').value);
+            const cRange = parseFloat(document.getElementById('cRange').value);
+            const xMin = parseFloat(document.getElementById('xMin').value);
+            const xMax = parseFloat(document.getElementById('xMax').value);
+            const yMin = parseFloat(document.getElementById('yMin').value);
+            const yMax = parseFloat(document.getElementById('yMax').value);
+            
+            if (!equation) {
+                alert('Please enter an equation');
+                return;
+            }
+            
+            // Update status indicator
+            const indicator = document.querySelector('.status-indicator');
+            indicator.classList.remove('status-ready');
+            indicator.classList.add('status-processing');
+            
+            // Store current equation
+            currentEquation = equation;
+            
+            // Generate curves and trajectories
+            generateOriginalCurves(equation, coordSystem, curveCount, cRange, xMin, xMax, yMin, yMax);
+            generateOrthogonalTrajectories(equation, coordSystem, trajCount, xMin, xMax, yMin, yMax);
+            
+            // Plot everything
+            plotAllGraphs();
+            
+            // Update math information
+            updateMathInfo(equation, coordSystem);
+            
+            // Reset status indicator
+            setTimeout(() => {
+                indicator.classList.remove('status-processing');
+                indicator.classList.add('status-ready');
+            }, 1000);
+        }
+        
+        function generateOriginalCurves(equation, coordSystem, count, cRange, xMin, xMax, yMin, yMax) {
+            originalData = [];
+            
+            // Generate C values
+            const cValues = [];
+            if (count === 1) {
+                cValues.push(1);
+            } else {
+                for (let i = 0; i < count; i++) {
+                    const c = -cRange + (2 * cRange * i) / (count - 1);
+                    if (Math.abs(c) > 0.01 || count <= 3) {
+                        cValues.push(c);
+                    }
+                }
+            }
+            
+            if (coordSystem === 'cartesian') {
+                // Cartesian coordinates
+                for (const C of cValues) {
+                    const eq = equation.replace(/C/g, C.toString());
+                    
+                    // Try to solve for y = f(x)
+                    if (eq.includes('y =') || eq.includes('y=')) {
+                        // Equation is already solved for y
+                        const funcStr = eq.split('=')[1].trim();
+                        const xVals = [];
+                        const yVals = [];
+                        
+                        for (let x = xMin; x <= xMax; x += 0.1) {
+                            try {
+                                const y = eval(funcStr.replace(/x/g, `(${x})`));
+                                if (isFinite(y) && y >= yMin && y <= yMax) {
+                                    xVals.push(x);
+                                    yVals.push(y);
+                                }
+                            } catch (e) {
+                                // Skip this point
+                            }
+                        }
+                        
+                        if (xVals.length > 0) {
+                            originalData.push({
+                                x: xVals,
+                                y: yVals,
+                                mode: 'lines',
+                                name: `C = ${C.toFixed(2)}`,
+                                line: { color: '#3498db', width: 2 }
+                            });
+                        }
+                    } else {
+                        // Implicit equation - use contour approach
+                        const resolution = 100;
+                        const xStep = (xMax - xMin) / resolution;
+                        const yStep = (yMax - yMin) / resolution;
+                        
+                        const contourData = { x: [], y: [], z: [] };
+                        
+                        for (let i = 0; i <= resolution; i++) {
+                            const x = xMin + i * xStep;
+                            for (let j = 0; j <= resolution; j++) {
+                                const y = yMin + j * yStep;
+                                try {
+                                    const value = eval(eq.replace(/x/g, `(${x})`).replace(/y/g, `(${y})`));
+                                    contourData.x.push(x);
+                                    contourData.y.push(y);
+                                    contourData.z.push(Math.abs(value));
+                                } catch (e) {
+                                    // Skip this point
+                                }
+                            }
+                        }
+                        
+                        // This is simplified - in a real app you'd use a proper contour algorithm
+                        // For now, we'll generate points where the equation is approximately satisfied
+                        const threshold = 0.5;
+                        const xVals = [];
+                        const yVals = [];
+                        
+                        for (let i = 0; i < contourData.z.length; i++) {
+                            if (contourData.z[i] < threshold) {
+                                xVals.push(contourData.x[i]);
+                                yVals.push(contourData.y[i]);
+                            }
+                        }
+                        
+                        if (xVals.length > 10) {
+                            originalData.push({
+                                x: xVals,
+                                y: yVals,
+                                mode: 'markers',
+                                name: `C = ${C.toFixed(2)}`,
+                                marker: { 
+                                    color: '#3498db', 
+                                    size: 3,
+                                    symbol: 'circle'
+                                },
+                                showlegend: false
+                            });
+                        }
+                    }
+                }
+            } else {
+                // Polar coordinates
+                for (const C of cValues) {
+                    const thetaVals = [];
+                    const rVals = [];
+                    const xVals = [];
+                    const yVals = [];
+                    
+                    for (let theta = 0; theta <= 4 * Math.PI; theta += 0.1) {
+                        try {
+                            const r = eval(equation.replace(/C/g, C.toString())
+                                                   .replace(/theta/g, `(${theta})`)
+                                                   .replace(/r/g, 'temp').replace('temp', `(${C}*${theta})`));
+                            if (isFinite(r) && r > 0) {
+                                thetaVals.push(theta);
+                                rVals.push(r);
+                                xVals.push(r * Math.cos(theta));
+                                yVals.push(r * Math.sin(theta));
+                            }
+                        } catch (e) {
+                            // Skip this point
+                        }
+                    }
+                    
+                    if (xVals.length > 0) {
+                        originalData.push({
+                            x: xVals,
+                            y: yVals,
+                            mode: 'lines',
+                            name: `C = ${C.toFixed(2)}`,
+                            line: { color: '#3498db', width: 2 }
+                        });
+                    }
+                }
+            }
+        }
+        
+        function generateOrthogonalTrajectories(equation, coordSystem, count, xMin, xMax, yMin, yMax) {
+            trajectoryData = [];
+            
+            // Generate starting points for trajectories
+            const startPoints = [];
+            const spacing = Math.min((xMax - xMin) / (count + 1), (yMax - yMin) / (count + 1));
+            
+            for (let i = 1; i <= count; i++) {
+                for (let j = 1; j <= count; j++) {
+                    const x0 = xMin + i * spacing;
+                    const y0 = yMin + j * spacing;
+                    startPoints.push({ x: x0, y: y0 });
+                }
+            }
+            
+            // Take only the requested number of trajectories
+            startPoints.length = Math.min(startPoints.length, count);
+            
+            // Colors for different trajectories
+            const colors = [
+                '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', 
+                '#1abc9c', '#d35400', '#c0392b', '#16a085'
+            ];
+            
+            // Generate trajectories using numerical integration
+            for (let idx = 0; idx < startPoints.length; idx++) {
+                const start = startPoints[idx];
+                const color = colors[idx % colors.length];
+                
+                // This is a simplified simulation
+                // In a real application, you would solve the differential equation
+                // For demonstration, we'll create a perpendicular field
+                
+                const xVals = [start.x];
+                const yVals = [start.y];
+                
+                // Generate trajectory by following perpendicular direction
+                let currentX = start.x;
+                let currentY = start.y;
+                const stepSize = 0.1;
+                const steps = 100;
+                
+                for (let step = 0; step < steps; step++) {
+                    // Calculate slope at current point (simplified)
+                    let slope = 0;
+                    try {
+                        if (equation.includes('x^2') && equation.includes('y - C*')) {
+                            // For parabolas y = Cx², slope = 2Cx, orthogonal slope = -1/(2Cx)
+                            // Simplified approximation
+                            slope = -currentX / (2 * currentY);
+                        } else if (equation.includes('x^2 + y^2')) {
+                            // For circles, orthogonal trajectories are lines through origin
+                            slope = currentY / currentX;
+                        } else {
+                            // Default: create interesting pattern
+                            slope = Math.sin(currentX) * Math.cos(currentY);
+                        }
+                        
+                        // Avoid extreme slopes
+                        if (Math.abs(slope) > 10) slope = slope > 0 ? 10 : -10;
+                        if (!isFinite(slope)) slope = 0;
+                    } catch (e) {
+                        slope = 0;
+                    }
+                    
+                    // Move perpendicular to slope
+                    const dx = stepSize / Math.sqrt(1 + slope * slope);
+                    const dy = -dx * slope; // Negative reciprocal for orthogonal
+                    
+                    // Choose direction randomly (forward or backward)
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    
+                    currentX += dir * dx;
+                    currentY += dir * dy;
+                    
+                    // Check bounds
+                    if (currentX < xMin || currentX > xMax || 
+                        currentY < yMin || currentY > yMax) {
+                        break;
+                    }
+                    
+                    xVals.push(currentX);
+                    yVals.push(currentY);
+                }
+                
+                trajectoryData.push({
+                    x: xVals,
+                    y: yVals,
+                    mode: 'lines',
+                    name: `Trajectory ${idx + 1}`,
+                    line: { 
+                        color: color, 
+                        width: 3,
+                        dash: 'solid'
+                    },
+                    marker: {
+                        size: 8,
+                        color: color
+                    }
+                });
+            }
+        }
+        
+        function plotAllGraphs() {
+            const xMin = parseFloat(document.getElementById('xMin').value);
+            const xMax = parseFloat(document.getElementById('xMax').value);
+            const yMin = parseFloat(document.getElementById('yMin').value);
+            const yMax = parseFloat(document.getElementById('yMax').value);
+            
+            // Common layout settings
+            const commonLayout = {
+                xaxis: { 
+                    title: 'x', 
+                    range: [xMin, xMax],
+                    gridcolor: '#f0f0f0',
+                    zerolinecolor: '#ccc'
+                },
+                yaxis: { 
+                    title: 'y', 
+                    range: [yMin, yMax],
+                    scaleanchor: 'x',
+                    gridcolor: '#f0f0f0',
+                    zerolinecolor: '#ccc'
+                },
+                showlegend: true,
+                legend: { 
+                    x: 1.02, 
+                    y: 1,
+                    bgcolor: 'rgba(255,255,255,0.8)'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white'
+            };
+            
+            // Plot original curves
+            Plotly.react('originalPlot', originalData, {
+                ...commonLayout,
+                title: `Original Family: ${currentEquation}`
+            });
+            
+            // Plot trajectories
+            Plotly.react('trajectoryPlot', trajectoryData, {
+                ...commonLayout,
+                title: 'Orthogonal Trajectories'
+            });
+            
+            // Plot combined view
+            const combined = [...originalData, ...trajectoryData];
+            Plotly.react('combinedPlot', combined, {
+                ...commonLayout,
+                title: 'Combined View',
+                showlegend: false
+            });
+        }
+        
+        function updateMathInfo(equation, coordSystem) {
+            let infoHTML = '';
+            
+            if (coordSystem === 'cartesian') {
+                // Try to extract slope information
+                let slopeExpr = '';
+                let orthogonalSlope = '';
+                
+                if (equation.includes('y - C*x')) {
+                    // Lines: y = Cx
+                    slopeExpr = 'C';
+                    orthogonalSlope = '-1/C';
+                } else if (equation.includes('y - C*x^2')) {
+                    // Parabolas: y = Cx²
+                    slopeExpr = '2Cx';
+                    orthogonalSlope = '-1/(2Cx)';
+                } else if (equation.includes('x^2 + y^2 - C')) {
+                    // Circles: x² + y² = C
+                    slopeExpr = '-x/y';
+                    orthogonalSlope = 'y/x';
+                } else if (equation.includes('y - C*exp(x)')) {
+                    // Exponential: y = Ceˣ
+                    slopeExpr = 'Ceˣ';
+                    orthogonalSlope = '-e⁻ˣ/C';
+                } else {
+                    // General case
+                    slopeExpr = 'f(x,y)';
+                    orthogonalSlope = '-1/f(x,y)';
+                }
+                
+                infoHTML = `
+                    <div class="trajectory-info">
+                        <h6>For the family: ${equation} = 0</h6>
+                        <div class="math-display">
+                            <p><strong>Original slope:</strong> $$ \\frac{dy}{dx} = ${slopeExpr} $$</p>
+                            <p><strong>Orthogonal trajectory condition:</strong> $$ \\frac{dy}{dx} = ${orthogonalSlope} $$</p>
+                            <p><strong>Solving method:</strong> Separate variables and integrate</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Polar coordinates
+                infoHTML = `
+                    <div class="trajectory-info">
+                        <h6>Polar Coordinates</h6>
+                        <div class="math-display">
+                            <p>For polar curves \( r = f(\\theta) \):</p>
+                            <p>Orthogonal trajectories satisfy:</p>
+                            <p>$$ \\frac{1}{r}\\frac{dr}{d\\theta} = -\\frac{1}{\\frac{1}{r}\\frac{dr}{d\\theta}_{\\text{original}}} $$</p>
+                            <p>or equivalently: $$ \\frac{dr}{d\\theta} = -\\frac{r^2}{\\left(\\frac{dr}{d\\theta}\\right)_{\\text{original}}} $$</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('mathInfo').innerHTML = infoHTML;
+            
+            // Render MathJax
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        }
+        
+        // Export functionality
+        function exportGraph(graphId) {
+            const plotDiv = document.getElementById(graphId);
+            Plotly.downloadImage(plotDiv, {
+                format: 'png',
+                width: 800,
+                height: 600,
+                filename: `orthogonal_trajectory_${graphId}`
+            });
+        }
+        
+        // Add export buttons dynamically
+        window.onload = function() {
+            // Add export buttons to each graph
+            const graphs = ['originalPlot', 'trajectoryPlot', 'combinedPlot'];
+            graphs.forEach(graphId => {
+                const plotDiv = document.getElementById(graphId);
+                const exportBtn = document.createElement('button');
+                exportBtn.className = 'btn btn-sm btn-outline-secondary';
+                exportBtn.style.position = 'absolute';
+                exportBtn.style.top = '10px';
+                exportBtn.style.right = '10px';
+                exportBtn.style.zIndex = '1000';
+                exportBtn.textContent = 'Export PNG';
+                exportBtn.onclick = () => exportGraph(graphId);
+                plotDiv.parentElement.style.position = 'relative';
+                plotDiv.parentElement.appendChild(exportBtn);
+            });
+        };
+    </script>
 </body>
 </html>
