@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orthogonal Trajectory Calculator</title>
+    <title>Advanced Orthogonal Trajectory Calculator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
@@ -23,7 +23,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background-color: white;
             border-radius: 12px;
@@ -57,7 +57,7 @@
         
         .left-panel {
             flex: 1;
-            min-width: 300px;
+            min-width: 350px;
             padding: 25px;
             border-right: 1px solid #eaeaea;
         }
@@ -87,7 +87,7 @@
             color: #444;
         }
         
-        select, input {
+        select, input, textarea {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid #ddd;
@@ -96,7 +96,13 @@
             transition: border-color 0.3s;
         }
         
-        select:focus, input:focus {
+        textarea {
+            height: 80px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+        
+        select:focus, input:focus, textarea:focus {
             outline: none;
             border-color: #6a11cb;
             box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.1);
@@ -111,6 +117,12 @@
             flex: 1;
         }
         
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
         button {
             background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
@@ -121,14 +133,22 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 10px;
+            flex: 1;
         }
         
         button:hover {
             opacity: 0.9;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(37, 117, 252, 0.2);
+        }
+        
+        button.secondary {
+            background: linear-gradient(to right, #8e9eab, #eef2f3);
+            color: #333;
+        }
+        
+        button.secondary:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
         .examples {
@@ -143,19 +163,38 @@
             color: #6a11cb;
         }
         
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
         .example-item {
-            padding: 10px;
+            padding: 12px;
             background-color: white;
             border-radius: 6px;
-            margin-bottom: 10px;
             cursor: pointer;
             border-left: 4px solid #2575fc;
             transition: all 0.2s;
+            height: 100%;
         }
         
         .example-item:hover {
             background-color: #f0f4ff;
             transform: translateX(5px);
+        }
+        
+        .example-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2575fc;
+        }
+        
+        .example-equation {
+            font-size: 0.9rem;
+            font-family: 'Cambria Math', serif;
+            color: #555;
         }
         
         #graph-container {
@@ -187,6 +226,32 @@
             margin-bottom: 15px;
             text-align: center;
             overflow-x: auto;
+        }
+        
+        .calculation-steps {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .calculation-steps h4 {
+            color: #6a11cb;
+            margin-bottom: 10px;
+        }
+        
+        .step {
+            margin-bottom: 8px;
+            padding-left: 15px;
+            position: relative;
+        }
+        
+        .step:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #2575fc;
         }
         
         .explanation {
@@ -221,6 +286,10 @@
                 border-right: none;
                 border-bottom: 1px solid #eaeaea;
             }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .loading {
@@ -238,13 +307,70 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-label {
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #6a11cb;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-project-diagram"></i> Orthogonal Trajectory Calculator</h1>
-            <p class="subtitle">Visualize orthogonal trajectories for families of curves</p>
+            <h1><i class="fas fa-project-diagram"></i> Advanced Orthogonal Trajectory Calculator</h1>
+            <p class="subtitle">Calculate and visualize orthogonal trajectories for various curve families</p>
         </header>
         
         <div class="content">
@@ -258,21 +384,46 @@
                         <option value="circle">Circles: x² + y² = a</option>
                         <option value="hyperbola">Hyperbolas: xy = a</option>
                         <option value="exponential">Exponentials: y = ae^x</option>
+                        <option value="linear">Linear: y = ax + b</option>
+                        <option value="ellipse">Ellipses: x²/a + y²/b = 1</option>
+                        <option value="sinusoidal">Sinusoidal: y = a sin(bx)</option>
+                        <option value="power">Power Law: y = ax^b</option>
+                        <option value="logarithmic">Logarithmic: y = a ln(bx)</option>
                         <option value="custom">Custom Equation</option>
                     </select>
                 </div>
                 
                 <div class="form-group" id="custom-equation-group" style="display: none;">
-                    <label for="custom-equation"><i class="fas fa-edit"></i> Custom Equation (use 'a' as parameter)</label>
-                    <input type="text" id="custom-equation" placeholder="e.g., y = a*x^2 or x^2 + y^2 = a">
+                    <label for="custom-equation"><i class="fas fa-edit"></i> Custom Equation (use 'a' and 'b' as parameters)</label>
+                    <textarea id="custom-equation" placeholder="Examples:
+y = a*x^2
+x^2 + y^2 = a
+x^2/a^2 + y^2/b^2 = 1
+y = a*sin(b*x)
+y = a*ln(b*x)"></textarea>
+                </div>
+                
+                <div class="toggle-container">
+                    <span class="toggle-label">Show Calculation Steps</span>
+                    <label class="switch">
+                        <input type="checkbox" id="show-steps">
+                        <span class="slider"></span>
+                    </label>
                 </div>
                 
                 <div class="form-group">
-                    <label for="parameter-range"><i class="fas fa-sliders-h"></i> Parameter Range</label>
+                    <label for="parameter-range"><i class="fas fa-sliders-h"></i> Parameter Range (a)</label>
                     <div class="input-group">
                         <input type="number" id="param-min" value="-3" step="0.5" placeholder="Min">
                         <input type="number" id="param-max" value="3" step="0.5" placeholder="Max">
                         <input type="number" id="param-step" value="0.5" step="0.1" placeholder="Step">
+                    </div>
+                </div>
+                
+                <div class="form-group" id="second-param-group" style="display: none;">
+                    <label for="second-parameter"><i class="fas fa-sliders-h"></i> Second Parameter (b)</label>
+                    <div class="input-group">
+                        <input type="number" id="second-param-value" value="1" step="0.5" placeholder="Value">
                     </div>
                 </div>
                 
@@ -284,9 +435,19 @@
                     </div>
                 </div>
                 
-                <button id="calculate-btn">
-                    <i class="fas fa-calculator"></i> Calculate Orthogonal Trajectory
-                </button>
+                <div class="form-group">
+                    <label for="trajectory-count"><i class="fas fa-project-diagram"></i> Number of Trajectories</label>
+                    <input type="number" id="trajectory-count" value="5" min="1" max="20" step="1">
+                </div>
+                
+                <div class="button-group">
+                    <button id="calculate-btn">
+                        <i class="fas fa-calculator"></i> Calculate
+                    </button>
+                    <button id="clear-btn" class="secondary">
+                        <i class="fas fa-broom"></i> Clear
+                    </button>
+                </div>
                 
                 <div class="loading" id="loading">
                     <i class="fas fa-spinner fa-2x"></i>
@@ -295,17 +456,39 @@
                 
                 <div class="examples">
                     <h3><i class="fas fa-lightbulb"></i> Example Families</h3>
-                    <div class="example-item" data-family="parabola" data-equation="y = a*x^2">
-                        <strong>Parabolas:</strong> y = ax²
-                    </div>
-                    <div class="example-item" data-family="circle" data-equation="x^2 + y^2 = a">
-                        <strong>Circles:</strong> x² + y² = a
-                    </div>
-                    <div class="example-item" data-family="hyperbola" data-equation="x*y = a">
-                        <strong>Hyperbolas:</strong> xy = a
-                    </div>
-                    <div class="example-item" data-family="exponential" data-equation="y = a*e^x">
-                        <strong>Exponentials:</strong> y = aeˣ
+                    <div class="example-grid">
+                        <div class="example-item" data-family="parabola" data-equation="y = a*x^2">
+                            <div class="example-title">Parabolas</div>
+                            <div class="example-equation">y = ax²</div>
+                        </div>
+                        <div class="example-item" data-family="circle" data-equation="x^2 + y^2 = a">
+                            <div class="example-title">Concentric Circles</div>
+                            <div class="example-equation">x² + y² = a</div>
+                        </div>
+                        <div class="example-item" data-family="hyperbola" data-equation="x*y = a">
+                            <div class="example-title">Rectangular Hyperbolas</div>
+                            <div class="example-equation">xy = a</div>
+                        </div>
+                        <div class="example-item" data-family="exponential" data-equation="y = a*e^x">
+                            <div class="example-title">Exponentials</div>
+                            <div class="example-equation">y = aeˣ</div>
+                        </div>
+                        <div class="example-item" data-family="linear" data-equation="y = a*x + b">
+                            <div class="example-title">Parallel Lines</div>
+                            <div class="example-equation">y = ax + b</div>
+                        </div>
+                        <div class="example-item" data-family="ellipse" data-equation="x^2/a^2 + y^2/b^2 = 1">
+                            <div class="example-title">Similar Ellipses</div>
+                            <div class="example-equation">x²/a² + y²/b² = 1</div>
+                        </div>
+                        <div class="example-item" data-family="sinusoidal" data-equation="y = a*sin(b*x)">
+                            <div class="example-title">Sinusoidal Waves</div>
+                            <div class="example-equation">y = a sin(bx)</div>
+                        </div>
+                        <div class="example-item" data-family="custom" data-equation="y = a*ln(b*x)">
+                            <div class="example-title">Logarithmic Curves</div>
+                            <div class="example-equation">y = a ln(bx)</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -322,23 +505,31 @@
                     <div class="equation">
                         Orthogonal Trajectory: <span id="orthogonal-equation">y² = -x²/(2a) + C</span>
                     </div>
+                    
+                    <div class="calculation-steps" id="calculation-steps" style="display: none;">
+                        <h4>Calculation Steps</h4>
+                        <div id="steps-content">
+                            <!-- Steps will be dynamically inserted here -->
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="explanation">
                     <h3><i class="fas fa-info-circle"></i> How Orthogonal Trajectories Work</h3>
-                    <p>Orthogonal trajectories are curves that intersect a given family of curves at right angles. To find them:</p>
+                    <p>Orthogonal trajectories are curves that intersect a given family of curves at right angles (90°).</p>
+                    <p><strong>Mathematical Procedure:</strong></p>
                     <p>1. Start with a family of curves F(x, y, a) = 0, where 'a' is a parameter.</p>
-                    <p>2. Differentiate to eliminate 'a' and obtain a differential equation.</p>
-                    <p>3. Replace dy/dx with -dx/dy to get the differential equation for orthogonal trajectories.</p>
+                    <p>2. Differentiate implicitly with respect to x to eliminate 'a' and obtain a differential equation: dy/dx = f(x, y).</p>
+                    <p>3. For orthogonal trajectories, replace dy/dx with -dx/dy (or -1/(dy/dx)).</p>
                     <p>4. Solve this new differential equation to find the orthogonal family.</p>
-                    <p>In this tool, we use numerical methods to calculate and visualize these trajectories for the given curve family.</p>
+                    <p>This tool uses both analytical solutions (for standard curves) and numerical methods (for complex equations) to calculate orthogonal trajectories.</p>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Orthogonal Trajectory Calculator | Created with HTML, CSS, JavaScript, and Plotly</p>
-            <p>Note: For complex equations, orthogonal trajectories may be calculated numerically and might not be perfect for all parameter values.</p>
+            <p>Advanced Orthogonal Trajectory Calculator | Created with HTML, CSS, JavaScript, and Plotly</p>
+            <p>Note: For complex equations, trajectories are calculated numerically and may be approximate.</p>
         </footer>
     </div>
 
@@ -348,13 +539,435 @@
             const curveFamilySelect = document.getElementById('curve-family');
             const customEquationGroup = document.getElementById('custom-equation-group');
             const customEquationInput = document.getElementById('custom-equation');
+            const secondParamGroup = document.getElementById('second-param-group');
             const calculateBtn = document.getElementById('calculate-btn');
+            const clearBtn = document.getElementById('clear-btn');
             const loadingDiv = document.getElementById('loading');
             const originalEquationSpan = document.getElementById('original-equation');
             const orthogonalEquationSpan = document.getElementById('orthogonal-equation');
             const graphContainer = document.getElementById('graph-container');
             const exampleItems = document.querySelectorAll('.example-item');
+            const showStepsToggle = document.getElementById('show-steps');
+            const calculationStepsDiv = document.getElementById('calculation-steps');
+            const stepsContent = document.getElementById('steps-content');
             
-            // Example equations for each family
+            // Equation templates for each family
             const equationTemplates = {
-                parabola: '
+                parabola: 'y = a*x^2',
+                circle: 'x^2 + y^2 = a',
+                hyperbola: 'x*y = a',
+                exponential: 'y = a*e^x',
+                linear: 'y = a*x + b',
+                ellipse: 'x^2/a^2 + y^2/b^2 = 1',
+                sinusoidal: 'y = a*sin(b*x)',
+                power: 'y = a*x^b',
+                logarithmic: 'y = a*ln(b*x)',
+                custom: ''
+            };
+            
+            // Orthogonal trajectory equations (analytical solutions where available)
+            const orthogonalEquations = {
+                parabola: 'y² = -x²/(2a) + C',
+                circle: 'y = Cx (lines through origin)',
+                hyperbola: 'x² - y² = C',
+                exponential: 'y²/2 + a*e^x = C',
+                linear: 'y = -x/a + C (perpendicular lines)',
+                ellipse: 'For x²/a² + y²/b² = 1: Orthogonal trajectories satisfy dy/dx = (a²y)/(b²x)',
+                sinusoidal: 'Numerically calculated',
+                power: 'For y = ax^b: y^(2-b) = C - (2-b)x²/(2a)',
+                logarithmic: 'Numerically calculated',
+                custom: 'Numerically calculated'
+            };
+            
+            // Show/hide custom equation input
+            curveFamilySelect.addEventListener('change', function() {
+                const family = this.value;
+                
+                if (family === 'custom') {
+                    customEquationGroup.style.display = 'block';
+                } else {
+                    customEquationGroup.style.display = 'none';
+                }
+                
+                // Show second parameter for families that need it
+                if (family === 'linear' || family === 'ellipse' || family === 'sinusoidal' || 
+                    family === 'logarithmic' || family === 'custom') {
+                    secondParamGroup.style.display = 'block';
+                } else {
+                    secondParamGroup.style.display = 'none';
+                }
+                
+                updateEquationDisplay();
+            });
+            
+            // Toggle calculation steps
+            showStepsToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    calculationStepsDiv.style.display = 'block';
+                } else {
+                    calculationStepsDiv.style.display = 'none';
+                }
+            });
+            
+            // Update equation display
+            function updateEquationDisplay() {
+                const family = curveFamilySelect.value;
+                const secondParam = document.getElementById('second-param-value').value;
+                
+                if (family === 'custom') {
+                    originalEquationSpan.textContent = customEquationInput.value.split('\n')[0] || 'y = a*f(x)';
+                    orthogonalEquationSpan.textContent = 'Calculated numerically';
+                } else {
+                    let equation = equationTemplates[family];
+                    // Replace b with actual value for display
+                    if (secondParam) {
+                        equation = equation.replace('b', secondParam);
+                    }
+                    originalEquationSpan.textContent = equation;
+                    orthogonalEquationSpan.textContent = orthogonalEquations[family];
+                }
+            }
+            
+            // Handle example clicks
+            exampleItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const family = this.getAttribute('data-family');
+                    const equation = this.getAttribute('data-equation');
+                    
+                    curveFamilySelect.value = family;
+                    
+                    if (family === 'custom') {
+                        customEquationInput.value = equation;
+                        customEquationGroup.style.display = 'block';
+                    } else {
+                        customEquationGroup.style.display = 'none';
+                    }
+                    
+                    // Set second parameter value for appropriate families
+                    if (family === 'linear') {
+                        document.getElementById('second-param-value').value = 1;
+                        secondParamGroup.style.display = 'block';
+                    } else if (family === 'ellipse') {
+                        document.getElementById('second-param-value').value = 2;
+                        secondParamGroup.style.display = 'block';
+                    } else if (family === 'sinusoidal') {
+                        document.getElementById('second-param-value').value = 1;
+                        secondParamGroup.style.display = 'block';
+                    } else if (family === 'logarithmic') {
+                        document.getElementById('second-param-value').value = 1;
+                        secondParamGroup.style.display = 'block';
+                    } else {
+                        secondParamGroup.style.display = 'none';
+                    }
+                    
+                    updateEquationDisplay();
+                    calculateTrajectories();
+                });
+            });
+            
+            // Clear button
+            clearBtn.addEventListener('click', function() {
+                Plotly.purge(graphContainer);
+                stepsContent.innerHTML = '';
+                originalEquationSpan.textContent = 'y = ax²';
+                orthogonalEquationSpan.textContent = 'y² = -x²/(2a) + C';
+            });
+            
+            // Update equation display when inputs change
+            customEquationInput.addEventListener('input', updateEquationDisplay);
+            document.getElementById('second-param-value').addEventListener('input', updateEquationDisplay);
+            
+            // Initialize equation display
+            updateEquationDisplay();
+            
+            // Calculate orthogonal trajectories
+            calculateBtn.addEventListener('click', calculateTrajectories);
+            
+            // Main function to calculate and plot trajectories
+            function calculateTrajectories() {
+                // Show loading indicator
+                loadingDiv.style.display = 'block';
+                
+                // Get input values
+                const family = curveFamilySelect.value;
+                const paramMin = parseFloat(document.getElementById('param-min').value);
+                const paramMax = parseFloat(document.getElementById('param-max').value);
+                const paramStep = parseFloat(document.getElementById('param-step').value);
+                const xMin = parseFloat(document.getElementById('x-min').value);
+                const xMax = parseFloat(document.getElementById('x-max').value);
+                const trajectoryCount = parseInt(document.getElementById('trajectory-count').value);
+                const secondParam = parseFloat(document.getElementById('second-param-value').value);
+                
+                let equation;
+                if (family === 'custom') {
+                    equation = customEquationInput.value.split('\n')[0] || 'y = a*x^2';
+                } else {
+                    equation = equationTemplates[family];
+                }
+                
+                // Update equation display
+                updateEquationDisplay();
+                
+                // Generate data for the family of curves
+                const curvesData = generateCurves(family, equation, paramMin, paramMax, paramStep, xMin, xMax, secondParam);
+                
+                // Generate orthogonal trajectories
+                const orthogonalData = generateOrthogonalTrajectories(family, equation, paramMin, paramMax, paramStep, xMin, xMax, secondParam, trajectoryCount);
+                
+                // Plot the results
+                plotCurves(curvesData, orthogonalData, xMin, xMax);
+                
+                // Show calculation steps if enabled
+                if (showStepsToggle.checked) {
+                    showCalculationSteps(family, equation, secondParam);
+                }
+                
+                // Hide loading indicator
+                loadingDiv.style.display = 'none';
+            }
+            
+            // Generate curves for the selected family
+            function generateCurves(family, equation, paramMin, paramMax, paramStep, xMin, xMax, secondParam) {
+                const curves = [];
+                const numParams = Math.floor((paramMax - paramMin) / paramStep) + 1;
+                
+                for (let i = 0; i <= numParams; i++) {
+                    const a = paramMin + i * paramStep;
+                    
+                    // Skip problematic values
+                    if ((family === 'hyperbola' || family === 'circle' || family === 'ellipse') && Math.abs(a) < 0.001) continue;
+                    if (family === 'logarithmic' && a <= 0) continue;
+                    
+                    const curve = generateCurve(family, a, secondParam, xMin, xMax);
+                    if (curve) {
+                        curves.push(curve);
+                    }
+                }
+                
+                return curves;
+            }
+            
+            // Generate a single curve for a given parameter value
+            function generateCurve(family, a, b, xMin, xMax) {
+                const xValues = [];
+                const yValues = [];
+                const step = (xMax - xMin) / 300;
+                
+                // Handle different curve families
+                switch(family) {
+                    case 'parabola':
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a * x * x);
+                        }
+                        break;
+                        
+                    case 'circle':
+                        if (a <= 0) return null;
+                        const radius = Math.sqrt(Math.abs(a));
+                        // Plot circle
+                        for (let angle = 0; angle <= 2 * Math.PI; angle += 0.05) {
+                            xValues.push(radius * Math.cos(angle));
+                            yValues.push(radius * Math.sin(angle));
+                        }
+                        break;
+                        
+                    case 'hyperbola':
+                        // Plot two branches
+                        for (let x = xMin; x < -0.1; x += step) {
+                            xValues.push(x);
+                            yValues.push(a / x);
+                        }
+                        for (let x = 0.1; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a / x);
+                        }
+                        break;
+                        
+                    case 'exponential':
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a * Math.exp(x));
+                        }
+                        break;
+                        
+                    case 'linear':
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a * x + b);
+                        }
+                        break;
+                        
+                    case 'ellipse':
+                        if (a <= 0 || b <= 0) return null;
+                        for (let angle = 0; angle <= 2 * Math.PI; angle += 0.05) {
+                            xValues.push(a * Math.cos(angle));
+                            yValues.push(b * Math.sin(angle));
+                        }
+                        break;
+                        
+                    case 'sinusoidal':
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a * Math.sin(b * x));
+                        }
+                        break;
+                        
+                    case 'power':
+                        for (let x = 0.1; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a * Math.pow(x, b));
+                        }
+                        break;
+                        
+                    case 'logarithmic':
+                        for (let x = 0.1; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(a * Math.log(b * x));
+                        }
+                        break;
+                        
+                    case 'custom':
+                        // Try to parse custom equation
+                        try {
+                            // Simple evaluation for common forms
+                            for (let x = xMin; x <= xMax; x += step) {
+                                let y;
+                                const eq = customEquationInput.value.toLowerCase().replace(/\s/g, '');
+                                
+                                if (eq.includes('y=a*x^2') || eq.includes('y=ax^2')) {
+                                    y = a * x * x;
+                                } else if (eq.includes('x^2+y^2=a') || eq.includes('x^2+y^2=a')) {
+                                    if (a <= 0) continue;
+                                    y = Math.sqrt(a - x*x);
+                                } else if (eq.includes('x*y=a') || eq.includes('xy=a')) {
+                                    y = a / x;
+                                } else if (eq.includes('y=a*e^x') || eq.includes('y=a*exp(x)')) {
+                                    y = a * Math.exp(x);
+                                } else if (eq.includes('y=a*ln(b*x)') || eq.includes('y=a*log(b*x)')) {
+                                    y = a * Math.log(b * x);
+                                } else if (eq.includes('y=a*sin(b*x)')) {
+                                    y = a * Math.sin(b * x);
+                                } else {
+                                    // Default fallback
+                                    y = a * x * x;
+                                }
+                                
+                                if (isFinite(y)) {
+                                    xValues.push(x);
+                                    yValues.push(y);
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Error parsing custom equation:", e);
+                            return null;
+                        }
+                        break;
+                }
+                
+                return {x: xValues, y: yValues, a: a};
+            }
+            
+            // Generate orthogonal trajectories
+            function generateOrthogonalTrajectories(family, equation, paramMin, paramMax, paramStep, xMin, xMax, secondParam, count) {
+                const trajectories = [];
+                const numParams = Math.min(count, Math.floor((paramMax - paramMin) / paramStep) + 1);
+                
+                // Use evenly spaced parameter values
+                const step = (paramMax - paramMin) / (numParams - 1);
+                
+                for (let i = 0; i < numParams; i++) {
+                    const a = paramMin + i * step;
+                    
+                    // Skip problematic values
+                    if ((family === 'hyperbola' || family === 'circle' || family === 'ellipse') && Math.abs(a) < 0.001) continue;
+                    if (family === 'logarithmic' && a <= 0) continue;
+                    
+                    const trajectory = generateOrthogonalTrajectory(family, a, secondParam, xMin, xMax);
+                    if (trajectory) {
+                        trajectories.push(trajectory);
+                    }
+                }
+                
+                return trajectories;
+            }
+            
+            // Generate a single orthogonal trajectory
+            function generateOrthogonalTrajectory(family, a, b, xMin, xMax) {
+                const xValues = [];
+                const yValues = [];
+                const step = (xMax - xMin) / 200;
+                
+                // Different orthogonal trajectories for different families
+                switch(family) {
+                    case 'parabola':
+                        // For y = ax², orthogonal trajectories satisfy y² = -x²/(2a) + C
+                        const c1 = 5; // Constant
+                        for (let x = xMin; x <= xMax; x += step) {
+                            const ySquared = -x*x/(2*a) + c1;
+                            if (ySquared >= 0) {
+                                xValues.push(x);
+                                yValues.push(Math.sqrt(ySquared));
+                            }
+                        }
+                        // Also add the negative square root
+                        for (let x = xMax; x >= xMin; x -= step) {
+                            const ySquared = -x*x/(2*a) + c1;
+                            if (ySquared >= 0) {
+                                xValues.push(x);
+                                yValues.push(-Math.sqrt(ySquared));
+                            }
+                        }
+                        break;
+                        
+                    case 'circle':
+                        // For x² + y² = a, orthogonal trajectories are lines through origin: y = Cx
+                        const slope = a/2; // Using a/2 as the slope
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(slope * x);
+                        }
+                        break;
+                        
+                    case 'hyperbola':
+                        // For xy = a, orthogonal trajectories: x² - y² = C
+                        const c2 = a * 2;
+                        for (let x = xMin; x <= xMax; x += step) {
+                            const ySquared = x*x - c2;
+                            if (ySquared >= 0) {
+                                xValues.push(x);
+                                yValues.push(Math.sqrt(ySquared));
+                            }
+                        }
+                        for (let x = xMax; x >= xMin; x -= step) {
+                            const ySquared = x*x - c2;
+                            if (ySquared >= 0) {
+                                xValues.push(x);
+                                yValues.push(-Math.sqrt(ySquared));
+                            }
+                        }
+                        break;
+                        
+                    case 'exponential':
+                        // For y = a*e^x, approximate orthogonal trajectories
+                        const offset = a * 2;
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            // Approximation based on solving differential equation
+                            const y = Math.sqrt(2*(offset - a*Math.exp(x)));
+                            if (isFinite(y)) {
+                                yValues.push(y);
+                            }
+                        }
+                        break;
+                        
+                    case 'linear':
+                        // For y = ax + b, orthogonal trajectories: y = -x/a + C
+                        const intercept = b;
+                        for (let x = xMin; x <= xMax; x += step) {
+                            xValues.push(x);
+                            yValues.push(-x/a + intercept);
+                        }
+                        break;
+                        
+                    case 'ell
